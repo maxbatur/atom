@@ -1,5 +1,8 @@
 package ru.atom;
 
+import java.util.Arrays;
+import java.util.OptionalInt;
+
 /**
  * In this assignment you need to implement the following util methods.
  * Note:
@@ -16,7 +19,9 @@ public class Util {
      * @return the largest of values.
      */
     public static int max(int[] values) {
-        throw new UnsupportedOperationException();
+        int maxValue = Arrays.stream(values).max().getAsInt();
+        return maxValue;
+        //throw new UnsupportedOperationException();
     }
 
     /**
@@ -26,7 +31,9 @@ public class Util {
      * @return the sum of all values.
      */
     public static long sum(int[] values) {
-        throw new UnsupportedOperationException();
+        long sumValues = Arrays.stream(values).asLongStream().sum();
+        return sumValues;
+        //throw new UnsupportedOperationException();
     }
 
 
