@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +42,7 @@ public class ChatController {
             return ResponseEntity.badRequest().body("Already logged in:(");
         }
         usersOnline.put(name, name);
-        messages.add("[" + name + "] logged in");
+        messages.add(getDate()+ " [" + name + "] logged in");
         return ResponseEntity.ok().build();
     }
 
@@ -56,19 +58,75 @@ public class ChatController {
         return ResponseEntity.ok(responseBody);
     }
 
-    /**
-     * curl -X POST -i localhost:8080/chat/logout -d "name=I_AM_STUPID"
-     */
-    //TODO
 
     /**
      * curl -X POST -i localhost:8080/chat/say -d "name=I_AM_STUPID&msg=Hello everyone in this chat"
      */
-    //TODO
+    @RequestMapping(
+            path = "say",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> say(@RequestParam("name") String name, @RequestParam("msg") String msg) {
+        if (name.length() < 1) {
+            return ResponseEntity.badRequest().body("Too short name, sorry :(");
+        }
+        if (name.length() > 20) {
+            return ResponseEntity.badRequest().body("Too long name, sorry :(");
+        }
+        if (!usersOnline.containsKey(name)) {
+            return ResponseEntity.badRequest().body("User not logged-in :(");
+        }
+        if (msg.length() < 1) {
+            return ResponseEntity.badRequest().body("No empty messages pls :(");
+        }
+        System.out.println();
+        messages.add(getDate() + " [" + name + "]: " + msg);
+        return ResponseEntity.ok().build();
+    }
 
 
     /**
      * curl -i localhost:8080/chat/chat
      */
-    //TODO
+    @RequestMapping(
+            path = "chat",
+            method = RequestMethod.GET,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity chat() {
+        String responseBody = String.join("\n", messages.stream().sorted().collect(Collectors.toList()));
+        return ResponseEntity.ok(responseBody);
+    }
+
+
+    /**
+     * curl -X POST -i localhost:8080/chat/logout -d "name=I_AM_STUPID"
+     */
+    @RequestMapping(
+            path = "logout",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<String> logout(@RequestParam("name") String name) {
+        if (name.length() < 1) {
+            return ResponseEntity.badRequest().body("Too short name, sorry :(");
+        }
+        if (name.length() > 20) {
+            return ResponseEntity.badRequest().body("Too long name, sorry :(");
+        }
+        if (!usersOnline.containsKey(name)) {
+            return ResponseEntity.badRequest().body("No such user here :(");
+        }
+        usersOnline.remove(name);
+        messages.add(getDate() + " [" + name + "] logged out");
+        return ResponseEntity.ok().build();
+    }
+
+
+    public String getDate() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        return (dtf.format(now));
+    }
+
 }
